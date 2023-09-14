@@ -1,0 +1,4 @@
+name = "MatFBCModel"
+uuid = "bd2e13bf-42c0-49e1-9a9c-885d36daf88b"
+authors = ["Mirek Kratochvil <miroslav.kratochvil@uni.lu>"]
+version = "0.1.0"
