@@ -4,25 +4,27 @@
     @test all(
         in.(
             keys(model.mat),
-            Ref([
-                "description"
-                "c"
-                "rev"
-                "mets"
-                "grRules"
-                "subSystems"
-                "b"
-                "metFormulas"
-                "rxnGeneMat"
-                "S"
-                "metNames"
-                "lb"
-                "metCharge"
-                "ub"
-                "rxnNames"
-                "rxns"
-                "genes"
-            ]),
+            Ref(
+                [
+                    "description"
+                    "c"
+                    "rev"
+                    "mets"
+                    "grRules"
+                    "subSystems"
+                    "b"
+                    "metFormulas"
+                    "rxnGeneMat"
+                    "S"
+                    "metNames"
+                    "lb"
+                    "metCharge"
+                    "ub"
+                    "rxnNames"
+                    "rxns"
+                    "genes"
+                ],
+            ),
         ),
     )
 

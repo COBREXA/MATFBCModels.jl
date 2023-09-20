@@ -5,9 +5,9 @@ import AbstractFBCModels as A
 using MAT, SparseArrays, Reexport
 
 module Internal
-    using DocStringExtensions
-    import ..A
-    include("constants.jl")
+using DocStringExtensions
+import ..A
+include("constants.jl")
 end
 
 import .Internal

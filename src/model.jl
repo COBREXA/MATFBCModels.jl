@@ -43,7 +43,8 @@ function A.balance(m::MATFBCModel)
     sparse(reshape(b, n_metabolites(m)))
 end
 
-A.objective(m::MATFBCModel) = sparse(reshape(get(m.mat, "c", zeros(n_reactions(m), 1)), n_reactions(m)))
+A.objective(m::MATFBCModel) =
+    sparse(reshape(get(m.mat, "c", zeros(n_reactions(m), 1)), n_reactions(m)))
 
 function A.genes(m::MATFBCModel)
     x = get(m.mat, "genes", [])

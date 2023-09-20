@@ -5,11 +5,7 @@ function A.load(::Type{MATFBCModel}, path::String)
     return MATFBCModel(model_pair.second)
 end
 
-function A.save(
-    model::MATFBCModel,
-    path::String;
-    model_name = "model",
-)
+function A.save(model::MATFBCModel, path::String; model_name = "model")
     m =
         typeof(model) == MATFBCModel ? model :
         begin
