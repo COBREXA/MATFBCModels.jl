@@ -5,3 +5,4 @@ Manifest.toml
 
 downloaded/*
 test/downloaded/*
+*.mat
