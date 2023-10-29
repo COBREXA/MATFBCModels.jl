@@ -1,7 +1,6 @@
 
 function A.load(::Type{MATFBCModel}, path::String)
     id, model = first(matread(path))
-    @info "Loading MAT: taking a model with ID $(id)"
     return MATFBCModel(id, model)
 end
 

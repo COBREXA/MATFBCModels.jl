@@ -10,11 +10,12 @@ This package defines an instance of the `AbstractFBCModel` interface (from the
 package
 [AbstractFBCModels.jl](https://github.com/COBREXA/AbstractFBCModels.jl)) for
 models saved as MAT files (typically produced by
-[cobratoolbox](https://opencobra.github.io/cobratoolbox/stable/)). This allows
-you to easily use the MAT formatted models in constraint-based modeling
-packages in Julia, and convert them to other constraint-based metabolic
-modeling data formats. [`MAT.jl`](https://github.com/JuliaIO/MAT.jl) is used
-for the lower-level work with MatLab data.
+[cobratoolbox](https://opencobra.github.io/cobratoolbox/stable/) and
+[RAVEN](https://github.com/SysBioChalmers/RAVEN)). This allows you to easily
+use the MAT formatted models in constraint-based modeling packages in Julia,
+and convert them to other constraint-based metabolic modeling data formats.
+[`MAT.jl`](https://github.com/JuliaIO/MAT.jl) is used for the lower-level work
+with MatLab data.
 
 The primary purpose of this is to provide MAT model loading functionality for
 [COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl) and
