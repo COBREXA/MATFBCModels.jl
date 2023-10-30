@@ -1,5 +1,5 @@
 
-guesskeys(id, model) = first(intersect(keys(model.mat), getfield(constants.keynames, id)))
+guesskeys(id, model) = first(intersect(keys(model.mat), getfield(key_names, id)))
 
 function parse_grr(str::Maybe{String})
     isnothing(str) && return nothing

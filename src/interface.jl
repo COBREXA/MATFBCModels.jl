@@ -1,15 +1,3 @@
-"""
-$(TYPEDEF)
-
-Wrapper around the models loaded in dictionaries from the MATLAB representation.
-
-# Fields
-$(TYPEDFIELDS)
-"""
-struct MATFBCModel <: A.AbstractFBCModel
-    id::String
-    mat::Dict{String,Any}
-end
 
 A.n_metabolites(m::MATFBCModel) = length(m.mat[guesskeys(:metabolites, m)])::Int
 A.n_reactions(m::MATFBCModel) = length(m.mat[guesskeys(:reactions, m)])::Int
@@ -40,12 +28,9 @@ A.reaction_gene_products_available(model::MATFBCModel, rid::String, available::F
     A.reaction_gene_products_available_from_dnf(model, rid, available)
 
 function A.reaction_gene_association_dnf(m::MATFBCModel, rid::String)
-    if any(haskey(m.mat, x) for x in constants.keynames.grrs)
-        grr = m.mat[guesskeys(:grrs, m)][findfirst(==(rid), A.reactions(m))]
-        typeof(grr) == String ? parse_grr(grr) : nothing
-    else
-        nothing
-    end
+    any(haskey(m.mat, x) for x in key_names.grrs) || return nothing
+    grr = m.mat[guesskeys(:grrs, m)][findfirst(==(rid), A.reactions(m))]
+    typeof(grr) == String ? parse_grr(grr) : nothing
 end
 
 function A.metabolite_formula(m::MATFBCModel, mid::String)
@@ -83,12 +68,12 @@ end
 
 A.gene_name(m::MATFBCModel, gid::String) = nothing
 
-# NOTE: There's no useful standard on how and where to store notes and
-# annotations in MATLAB models. We therefore leave it very open for the users,
-# who can easily support any annotation scheme using a custom wrapper.
-# Even the (simple) assumptions about grRules, formulas and charges that we use
-# here are very likely completely incompatible with >50% of the MATLAB models
-# out there.
+# NOTE FOR A CAUTIOUS READER: There's no useful standard on how and where to
+# store notes and annotations in MATLAB models. We therefore leave it very open
+# for the users, who can easily support any annotation scheme using a custom
+# wrapper. Even the (simple) assumptions about grRules, formulas and charges
+# that we use here are very likely completely incompatible with >50% of the
+# MATLAB output out there.
 A.gene_annotations(model::MATFBCModel, gid::String) = A.Annotations()
 A.gene_notes(model::MATFBCModel, gid::String) = A.Notes()
 A.reaction_annotations(model::MATFBCModel, rid::String) = A.Annotations()
