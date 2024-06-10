@@ -48,28 +48,30 @@ inefficient. Use `coupling` instead.
 function A.coupling_weights(m::MATFBCModel, cid::String)
     startswith(cid, "mat_coupling_") || throw(DomainError(cid, "unknown coupling"))
     cidx = parse(Int, cid[14:end])
-    return Dict(r => w for (r, w) in zip(A.reactions(m), A.coupling(m)[cidx, :]) if w != 0)
+    return Dict{String,Float64}(
+        r => w for (r, w) in zip(A.reactions(m), A.coupling(m)[cidx, :]) if w != 0
+    )
 end
 
 
 function A.coupling_bounds(m::MATFBCModel)
-    nc = n_coupling_constraints(m)
+    nc = A.n_couplings(m)
     if looks_like_squashed_coupling(m.mat)
         c = reshape(m.mat["b"], length(m.mat["b"]))[A.n_reactions(m)+1:end]
         csense = reshape(m.mat["csense"], length(m.mat["csense"]))[A.n_reactions(m)+1:end],
-        (
+        return (
             [sense in ["G", "E"] ? val : -Inf for (val, sense) in zip(c, csense)],
             [sense in ["L", "E"] ? val : Inf for (val, sense) in zip(c, csense)],
         )
     elseif haskey(m.mat, "d") && haskey(m.mat, "dsense")
         d = reshape(m.mat["d"], nc)
         dsense = reshape(m.mat["dsense"], nc)
-        (
+        return (
             [sense in ["G", "E"] ? val : -Inf for (val, sense) in zip(d, dsense)],
             [sense in ["L", "E"] ? val : Inf for (val, sense) in zip(d, dsense)],
         )
     else
-        (
+        return (
             reshape(get(m.mat, "cl", fill(-Inf, nc, 1)), nc),
             reshape(get(m.mat, "cu", fill(Inf, nc, 1)), nc),
         )
