@@ -30,14 +30,14 @@ looks_like_squashed_coupling(mat) =
     haskey(mat, "A") && haskey(mat, "b") && length(mat["b"]) == size(mat["A"], 1)
 
 A.n_couplings(m::MATFBCModel) =
-    looks_like_squashed_coupling(m.mat) ? size(m.mat["A"], 1) - n_reactions(m) :
-    size(get(m.mat, "C", zeros(0, n_reactions(m))), 1)
+    looks_like_squashed_coupling(m.mat) ? size(m.mat["A"], 1) - A.n_reactions(m) :
+    size(get(m.mat, "C", zeros(0, A.n_reactions(m))), 1)
 
-A.couplings(m::MATFBCModel) = String["mat_coupling_$i" for i = 1:n_couplings(m)]
+A.couplings(m::MATFBCModel) = String["mat_coupling_$i" for i = 1:A.n_couplings(m)]
 
 A.coupling(m::MATFBCModel) =
-    looks_like_squashed_coupling(m.mat) ? sparse(m.mat["A"][n_reactions(m)+1:end, :]) :
-    sparse(get(m.mat, "C", zeros(0, n_reactions(m))))
+    looks_like_squashed_coupling(m.mat) ? sparse(m.mat["A"][A.n_reactions(m)+1:end, :]) :
+    sparse(get(m.mat, "C", zeros(0, A.n_reactions(m))))
 
 """
 $(TYPEDSIGNATURES)
@@ -55,8 +55,8 @@ end
 function A.coupling_bounds(m::MATFBCModel)
     nc = n_coupling_constraints(m)
     if looks_like_squashed_coupling(m.mat)
-        c = reshape(m.mat["b"], length(m.mat["b"]))[n_reactions(m)+1:end]
-        csense = reshape(m.mat["csense"], length(m.mat["csense"]))[n_reactions(m)+1:end],
+        c = reshape(m.mat["b"], length(m.mat["b"]))[A.n_reactions(m)+1:end]
+        csense = reshape(m.mat["csense"], length(m.mat["csense"]))[A.n_reactions(m)+1:end],
         (
             [sense in ["G", "E"] ? val : -Inf for (val, sense) in zip(c, csense)],
             [sense in ["L", "E"] ? val : Inf for (val, sense) in zip(c, csense)],
