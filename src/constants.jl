@@ -4,6 +4,9 @@
 
 This module collects information on how people typically name stuff in the MAT
 file structure.
+
+The constants are not "constant" per se, so that they are easy to modify in
+case they should read models with creatively named fields.
 """
 module key_names
 reactions = ["reactions", "rxns", "RXNS", "REACTIONS", "Reactions", "Rxns"]
