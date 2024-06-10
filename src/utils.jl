@@ -1,20 +1,6 @@
 
 guesskeys(id, model) = first(intersect(keys(model.mat), getfield(key_names, id)))
 
-function parse_grr(str::Maybe{String})
-    isnothing(str) && return nothing
-    isempty(str) && return nothing
-
-    dnf = A.GeneAssociationDNF()
-    for isozyme in string.(split(str, " or "))
-        push!(
-            dnf,
-            string.(split(replace(isozyme, "(" => "", ")" => "", " and " => " "), " ")),
-        )
-    end
-    return dnf
-end
-
 function parse_formula(x::Maybe{String})
     isnothing(x) && return nothing
     x == "" && return nothing
@@ -45,9 +31,4 @@ function unparse_formula(x::Maybe{A.MetaboliteFormula})
     isnothing(x) && return nothing
     ks = sort(collect(keys(x)))
     join(k * string(x[k]) for k in ks)
-end
-
-function unparse_grr(xs::Maybe{A.GeneAssociationDNF})
-    isnothing(xs) && return nothing
-    join((join(x, " and ") for x in xs), " or ")
 end

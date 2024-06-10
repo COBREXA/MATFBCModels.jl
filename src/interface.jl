@@ -140,6 +140,7 @@ function Base.convert(::Type{MATFBCModel}, m::A.AbstractFBCModel)
     end
 
     lb, ub = A.bounds(m)
+    clb, cub = A.coupling_bounds(m)
     return MATFBCModel(
         "model", # default name
         Dict(
@@ -150,9 +151,12 @@ function Base.convert(::Type{MATFBCModel}, m::A.AbstractFBCModel)
             "ub" => Vector(ub),
             "b" => Vector(A.balance(m)),
             "c" => Vector(A.objective(m)),
+            "C" => A.coupling(m),
+            "cl" => Vector(clb),
+            "cu" => Vector(cub),
             "genes" => A.genes(m),
             "grRules" => [
-                unparse_grr(A.reaction_gene_association_dnf(m, rid)) for
+                format_gene_association_dnf(A.reaction_gene_association_dnf(m, rid)) for
                 rid in A.reactions(m)
             ],
             "metFormulas" =>
