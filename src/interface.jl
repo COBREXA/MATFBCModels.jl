@@ -77,13 +77,25 @@ function A.coupling_bounds(m::MATFBCModel)::Tuple{Vector{Float64},Vector{Float64
     end
 end
 
-A.reaction_gene_products_available(model::MATFBCModel, rid::String, available::Function) =
-    A.reaction_gene_products_available_from_dnf(model, rid, available)
+function A.reaction_gene_products_available(
+    m::MATFBCModel,
+    rid::String,
+    available::Function,
+)
+    any(haskey(m.mat, x) for x in key_names.grrs) || return nothing
+    grr = m.mat[guesskeys(:grrs, m)][findfirst(==(rid), A.reactions(m))]
+    typeof(grr) == String || return nothing
+    grrexp = parse_gene_association(grr)
+    grrexp == nothing && return nothing
+    return eval_gene_association(grrexp, available)
+end
 
 function A.reaction_gene_association_dnf(m::MATFBCModel, rid::String)
     any(haskey(m.mat, x) for x in key_names.grrs) || return nothing
     grr = m.mat[guesskeys(:grrs, m)][findfirst(==(rid), A.reactions(m))]
-    typeof(grr) == String ? parse_grr(grr) : nothing
+    grrexp = parse_gene_association(grr)
+    grrexp == nothing && return nothing
+    return flatten_gene_association(grrexp)
 end
 
 function A.metabolite_formula(m::MATFBCModel, mid::String)
@@ -156,8 +168,9 @@ function Base.convert(::Type{MATFBCModel}, m::A.AbstractFBCModel)
             "cu" => Vector(cub),
             "genes" => A.genes(m),
             "grRules" => [
-                format_gene_association_dnf(A.reaction_gene_association_dnf(m, rid)) for
-                rid in A.reactions(m)
+                let dnf = A.reaction_gene_association_dnf(m, rid)
+                    isnothing(dnf) ? "" : format_gene_association_dnf(dnf)
+                end for rid in A.reactions(m)
             ],
             "metFormulas" =>
                 [unparse_formula(A.metabolite_formula(m, mid)) for mid in A.metabolites(m)],
