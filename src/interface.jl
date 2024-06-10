@@ -30,12 +30,12 @@ looks_like_squashed_coupling(mat) =
     haskey(mat, "A") && haskey(mat, "b") && length(mat["b"]) == size(mat["A"], 1)
 
 A.n_couplings(m::MATFBCModel) =
-    looks_like_squashed_coupling(m.mat) ? size(m.mat["A"], 1) - A.n_reactions(m) :
-    size(get(m.mat, "C", zeros(0, A.n_reactions(m))), 1)
+    looks_like_squashed_coupling(m.mat) ? size(m.mat["A"], 1)::Int - A.n_reactions(m) :
+    size(get(m.mat, "C", zeros(0, A.n_reactions(m))), 1)::Int
 
 A.couplings(m::MATFBCModel) = String["mat_coupling_$i" for i = 1:A.n_couplings(m)]
 
-A.coupling(m::MATFBCModel) =
+A.coupling(m::MATFBCModel)::SparseMatrixCSC{Float64,Int64} =
     looks_like_squashed_coupling(m.mat) ? sparse(m.mat["A"][A.n_reactions(m)+1:end, :]) :
     sparse(get(m.mat, "C", zeros(0, A.n_reactions(m))))
 
