@@ -53,7 +53,6 @@ function A.coupling_weights(m::MATFBCModel, cid::String)
     )
 end
 
-
 function A.coupling_bounds(m::MATFBCModel)
     nc = A.n_couplings(m)
     if looks_like_squashed_coupling(m.mat)
