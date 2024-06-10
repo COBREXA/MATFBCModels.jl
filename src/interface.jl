@@ -53,7 +53,7 @@ function A.coupling_weights(m::MATFBCModel, cid::String)
     )
 end
 
-function A.coupling_bounds(m::MATFBCModel)
+function A.coupling_bounds(m::MATFBCModel)::Tuple{Vector{Float64},Vector{Float64}}
     nc = A.n_couplings(m)
     if looks_like_squashed_coupling(m.mat)
         c = reshape(m.mat["b"], length(m.mat["b"]))[A.n_reactions(m)+1:end]
