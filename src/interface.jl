@@ -39,6 +39,19 @@ A.coupling(m::MATModel) =
     looks_like_squashed_coupling(m.mat) ? sparse(m.mat["A"][n_reactions(m)+1:end, :]) :
     sparse(get(m.mat, "C", zeros(0, n_reactions(m))))
 
+"""
+$(TYPEDSIGNATURES)
+
+Overload of `coupling_weights` for `MATFBCModel` is currently quite
+inefficient. Use `coupling` instead.
+"""
+function A.coupling_weights(m::MATModel, cid::String)
+    startswith(cid, "mat_coupling_") || throw(DomainError(cid, "unknown coupling"))
+    cidx = parse(Int, cid[14:end])
+    return Dict(r => w for (r, w) in zip(A.reactions(m), A.coupling(m)[cidx, :]) if w != 0)
+end
+
+
 function A.coupling_bounds(m::MATFBCModel)
     nc = n_coupling_constraints(m)
     if looks_like_squashed_coupling(m.mat)
