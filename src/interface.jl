@@ -24,6 +24,45 @@ A.balance(m::MATFBCModel) =
 A.objective(m::MATFBCModel) =
     sparsevec(m.mat[guesskeys(:objective, m)])::SparseVector{Float64,Int64}
 
+# TODO: we should use `guesskeys` for couplings too, but the situation gets
+# quite messy there and might require a lot of effort to do "right".
+looks_like_squashed_coupling(mat) =
+    haskey(mat, "A") && haskey(mat, "b") && length(mat["b"]) == size(mat["A"], 1)
+
+A.n_couplings(m::MATModel) =
+    looks_like_squashed_coupling(m.mat) ? size(m.mat["A"], 1) - n_reactions(m) :
+    size(get(m.mat, "C", zeros(0, n_reactions(m))), 1)
+
+A.couplings(m::MATModel) = String["mat_coupling_$i" for i = 1:n_couplings(m)]
+
+A.coupling(m::MATModel) =
+    looks_like_squashed_coupling(m.mat) ? sparse(m.mat["A"][n_reactions(m)+1:end, :]) :
+    sparse(get(m.mat, "C", zeros(0, n_reactions(m))))
+
+function A.coupling_bounds(m::MATFBCModel)
+    nc = n_coupling_constraints(m)
+    if looks_like_squashed_coupling(m.mat)
+        c = reshape(m.mat["b"], length(m.mat["b"]))[n_reactions(m)+1:end]
+        csense = reshape(m.mat["csense"], length(m.mat["csense"]))[n_reactions(m)+1:end],
+        (
+            [sense in ["G", "E"] ? val : -Inf for (val, sense) in zip(c, csense)],
+            [sense in ["L", "E"] ? val : Inf for (val, sense) in zip(c, csense)],
+        )
+    elseif haskey(m.mat, "d") && haskey(m.mat, "dsense")
+        d = reshape(m.mat["d"], nc)
+        dsense = reshape(m.mat["dsense"], nc)
+        (
+            [sense in ["G", "E"] ? val : -Inf for (val, sense) in zip(d, dsense)],
+            [sense in ["L", "E"] ? val : Inf for (val, sense) in zip(d, dsense)],
+        )
+    else
+        (
+            reshape(get(m.mat, "cl", fill(-Inf, nc, 1)), nc),
+            reshape(get(m.mat, "cu", fill(Inf, nc, 1)), nc),
+        )
+    end
+end
+
 A.reaction_gene_products_available(model::MATFBCModel, rid::String, available::Function) =
     A.reaction_gene_products_available_from_dnf(model, rid, available)
 
