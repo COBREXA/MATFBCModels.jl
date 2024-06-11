@@ -151,14 +151,18 @@ function Base.convert(::Type{MATFBCModel}, m::A.AbstractFBCModel)
         return m
     end
 
+    rxns = A.reactions(m)
+    mets = A.metabolites(m)
     lb, ub = A.bounds(m)
     clb, cub = A.coupling_bounds(m)
     return MATFBCModel(
         "model", # default name
         Dict(
             "S" => A.stoichiometry(m),
-            "rxns" => A.reactions(m),
-            "mets" => A.metabolites(m),
+            "rxns" => rxns,
+            "rxnNames" => [something(A.reaction_name(m, rxn), "") for rxn in rxns],
+            "mets" => mets,
+            "metNames" => [something(A.metabolite_name(m, met), "") for met in mets],
             "lb" => Vector(lb),
             "ub" => Vector(ub),
             "b" => Vector(A.balance(m)),
