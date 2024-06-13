@@ -1,6 +1,7 @@
 using Test
 import AbstractFBCModels as A
 import MATFBCModels as M
+import SparseArrays
 
 @testset "MATFBCModels" begin
 

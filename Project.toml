@@ -1,18 +1,20 @@
 name = "MATFBCModels"
 uuid = "bd2e13bf-42c0-49e1-9a9c-885d36daf88b"
 authors = ["The authors of MATFBCModels.jl"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 AbstractFBCModels = "5a4f3dfa-1789-40f8-8221-69268c29937c"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 MAT = "23992714-dd62-5051-b70f-ba57cb901cac"
+PikaParser = "3bbf5609-3e7b-44cd-8549-7c69f321e792"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
-AbstractFBCModels = "0.1, 0.2"
+AbstractFBCModels = "0.3"
 DocStringExtensions = "0.8, 0.9"
 MAT = "0.10"
+PikaParser = "0.6"
 SparseArrays = "1"
 Test = "1"
 julia = "1"

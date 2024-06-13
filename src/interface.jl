@@ -24,13 +24,78 @@ A.balance(m::MATFBCModel) =
 A.objective(m::MATFBCModel) =
     sparsevec(m.mat[guesskeys(:objective, m)])::SparseVector{Float64,Int64}
 
-A.reaction_gene_products_available(model::MATFBCModel, rid::String, available::Function) =
-    A.reaction_gene_products_available_from_dnf(model, rid, available)
+# TODO: we should use `guesskeys` for couplings too, but the situation gets
+# quite messy there and might require a lot of effort to do "right".
+looks_like_squashed_coupling(mat) =
+    haskey(mat, "A") && haskey(mat, "b") && length(mat["b"]) == size(mat["A"], 1)
+
+A.n_couplings(m::MATFBCModel) =
+    looks_like_squashed_coupling(m.mat) ? size(m.mat["A"], 1)::Int - A.n_reactions(m) :
+    size(get(m.mat, "C", zeros(0, A.n_reactions(m))), 1)::Int
+
+A.couplings(m::MATFBCModel) = String["mat_coupling_$i" for i = 1:A.n_couplings(m)]
+
+A.coupling(m::MATFBCModel)::SparseMatrixCSC{Float64,Int64} =
+    looks_like_squashed_coupling(m.mat) ? sparse(m.mat["A"][A.n_reactions(m)+1:end, :]) :
+    sparse(get(m.mat, "C", zeros(0, A.n_reactions(m))))
+
+"""
+$(TYPEDSIGNATURES)
+
+Overload of `coupling_weights` for `MATFBCModel` is currently quite
+inefficient. Use `coupling` instead.
+"""
+function A.coupling_weights(m::MATFBCModel, cid::String)
+    startswith(cid, "mat_coupling_") || throw(DomainError(cid, "unknown coupling"))
+    cidx = parse(Int, cid[14:end])
+    return Dict{String,Float64}(
+        r => w for (r, w) in zip(A.reactions(m), A.coupling(m)[cidx, :]) if w != 0
+    )
+end
+
+function A.coupling_bounds(m::MATFBCModel)::Tuple{Vector{Float64},Vector{Float64}}
+    nc = A.n_couplings(m)
+    if looks_like_squashed_coupling(m.mat)
+        c = reshape(m.mat["b"], length(m.mat["b"]))[A.n_reactions(m)+1:end]
+        csense = reshape(m.mat["csense"], nc)
+        return (
+            [sense in ["G", "E"] ? val : -Inf for (val, sense) in zip(c, csense)],
+            [sense in ["L", "E"] ? val : Inf for (val, sense) in zip(c, csense)],
+        )
+    elseif haskey(m.mat, "d") && haskey(m.mat, "dsense")
+        d = reshape(m.mat["d"], nc)
+        dsense = reshape(m.mat["dsense"], nc)
+        return (
+            [sense in ["G", "E"] ? val : -Inf for (val, sense) in zip(d, dsense)],
+            [sense in ["L", "E"] ? val : Inf for (val, sense) in zip(d, dsense)],
+        )
+    else
+        return (
+            reshape(get(m.mat, "cl", fill(-Inf, nc, 1)), nc),
+            reshape(get(m.mat, "cu", fill(Inf, nc, 1)), nc),
+        )
+    end
+end
+
+function A.reaction_gene_products_available(
+    m::MATFBCModel,
+    rid::String,
+    available::Function,
+)
+    any(haskey(m.mat, x) for x in key_names.grrs) || return nothing
+    grr = m.mat[guesskeys(:grrs, m)][findfirst(==(rid), A.reactions(m))]
+    typeof(grr) == String || return nothing
+    grrexp = parse_gene_association(grr)
+    grrexp == nothing && return nothing
+    return eval_gene_association(grrexp, available)
+end
 
 function A.reaction_gene_association_dnf(m::MATFBCModel, rid::String)
     any(haskey(m.mat, x) for x in key_names.grrs) || return nothing
     grr = m.mat[guesskeys(:grrs, m)][findfirst(==(rid), A.reactions(m))]
-    typeof(grr) == String ? parse_grr(grr) : nothing
+    grrexp = parse_gene_association(grr)
+    grrexp == nothing && return nothing
+    return flatten_gene_association(grrexp)
 end
 
 function A.metabolite_formula(m::MATFBCModel, mid::String)
@@ -86,21 +151,30 @@ function Base.convert(::Type{MATFBCModel}, m::A.AbstractFBCModel)
         return m
     end
 
+    rxns = A.reactions(m)
+    mets = A.metabolites(m)
     lb, ub = A.bounds(m)
+    clb, cub = A.coupling_bounds(m)
     return MATFBCModel(
         "model", # default name
         Dict(
             "S" => A.stoichiometry(m),
-            "rxns" => A.reactions(m),
-            "mets" => A.metabolites(m),
+            "rxns" => rxns,
+            "rxnNames" => [something(A.reaction_name(m, rxn), "") for rxn in rxns],
+            "mets" => mets,
+            "metNames" => [something(A.metabolite_name(m, met), "") for met in mets],
             "lb" => Vector(lb),
             "ub" => Vector(ub),
             "b" => Vector(A.balance(m)),
             "c" => Vector(A.objective(m)),
+            "C" => A.coupling(m),
+            "cl" => Vector(clb),
+            "cu" => Vector(cub),
             "genes" => A.genes(m),
             "grRules" => [
-                unparse_grr(A.reaction_gene_association_dnf(m, rid)) for
-                rid in A.reactions(m)
+                let dnf = A.reaction_gene_association_dnf(m, rid)
+                    isnothing(dnf) ? "" : format_gene_association_dnf(dnf)
+                end for rid in A.reactions(m)
             ],
             "metFormulas" =>
                 [unparse_formula(A.metabolite_formula(m, mid)) for mid in A.metabolites(m)],
