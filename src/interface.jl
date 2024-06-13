@@ -57,7 +57,7 @@ function A.coupling_bounds(m::MATFBCModel)::Tuple{Vector{Float64},Vector{Float64
     nc = A.n_couplings(m)
     if looks_like_squashed_coupling(m.mat)
         c = reshape(m.mat["b"], length(m.mat["b"]))[A.n_reactions(m)+1:end]
-        csense = reshape(m.mat["csense"], length(m.mat["csense"]))[A.n_reactions(m)+1:end],
+        csense = reshape(m.mat["csense"], nc)
         return (
             [sense in ["G", "E"] ? val : -Inf for (val, sense) in zip(c, csense)],
             [sense in ["L", "E"] ? val : Inf for (val, sense) in zip(c, csense)],

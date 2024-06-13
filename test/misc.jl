@@ -11,7 +11,6 @@
     @test all(x in ["mat" "MAT"] for x in A.filename_extensions(M.MATFBCModel))
 end
 
-
 @testset "Test coupling" begin
     model = convert(
         A.CanonicalModel.Model,
@@ -36,10 +35,53 @@ end
         test_save = true,
     )
     model = convert(A.CanonicalModel.Model, A.load(M.MATFBCModel, path))
-    # TODO @test if the couplings were carried over properly (except for the
-    # IDs, these are discarded)
-    # TODO add entries to `model.mat` manually to test if the other 2 ways of
-    # expressing the couplings work
+
+    @test A.n_couplings(model) == 2
+    cbs = A.coupling_bounds(model)
+    @test cbs in [([-4.321, -5], [1.234, -5]), ([-5, -4.321], [-5, 1.234])]
+    @test merge(A.coupling_weights.(Ref(model), A.couplings(model))...) == Dict(
+        "EX_o2_e" => 1,
+        "EX_co2_e" => -1,
+        "EX_glc__D_e" => 1,
+        "EX_fru_e" => 1,
+        "EX_pyr_e" => 1,
+    )
+end
+
+@testset "Ugly cases of coupling" begin
+    m = M.MATFBCModel(
+        "model",
+        Dict(
+            "S" => [
+                1.0 1.0
+                -1.0 1.0
+            ],
+            "b" => [3.0, 1.0],
+            "c" => [-0.25, 1.0],
+            "xl" => -ones(2),
+            "xu" => 2.0 * ones(2),
+            "rxns" => ["r$x" for x = 1:2],
+            "mets" => ["m$x" for x = 1:2],
+        ),
+    )
+
+    @test size(A.coupling(m)) == (0, 2)
+
+    mc = deepcopy(m)
+
+    mc.mat["C"] = [0.5 0.5]
+    @test A.coupling_bounds(mc) == ([-Inf], [Inf])
+
+    m1 = deepcopy(mc)
+    m1.mat["A"] = vcat(m1.mat["S"], m1.mat["C"])
+    m1.mat["b"] = vcat(m1.mat["b"], [5])
+    m1.mat["csense"] = ["L"]
+    @test A.coupling_bounds(m1) == ([-Inf], [5.0])
+
+    m2 = deepcopy(mc)
+    m2.mat["d"] = [5]
+    m2.mat["dsense"] = ["G"]
+    @test A.coupling_bounds(m2) == ([5.0], [Inf])
 end
 
 @testset "Corner cases" begin
