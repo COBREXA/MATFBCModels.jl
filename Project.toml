@@ -1,7 +1,7 @@
 name = "MATFBCModels"
 uuid = "bd2e13bf-42c0-49e1-9a9c-885d36daf88b"
 authors = ["The authors of MATFBCModels.jl"]
-version = "0.2.0"
+version = "1.0.0"
 
 [deps]
 AbstractFBCModels = "5a4f3dfa-1789-40f8-8221-69268c29937c"

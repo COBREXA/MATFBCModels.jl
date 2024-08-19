@@ -108,7 +108,17 @@ function A.metabolite_charge(m::MATFBCModel, mid::String)
     parse_charge(m.mat[guesskeys(:metabolite_charges, m)][idx])
 end
 
-A.metabolite_compartment(m::MATFBCModel, mid::String) = nothing
+function A.metabolite_compartment(m::MATFBCModel, mid::String)::Union{Nothing,String}
+    comp_key = guesskeys_maybe(:metabolite_compartments, m)
+    isnothing(comp_key) && return nothing
+    res = m.mat[comp_key][findfirst(==(mid), A.metabolites(m))]
+    # now, if the metabolite is an integer or a (very integerish) float, it is an
+    # index to a table of metabolite names (such as in the yeast GEM)
+    typeof(res) <: Real || return parse_compartment(res)
+    ct_key = guesskeys_maybe(:metabolite_compartment_tables, m)
+    isnothing(ct_key) && return nothing
+    return parse_compartment(m.mat[ct_key][Int(res)])
+end
 
 function A.reaction_stoichiometry(m::MATFBCModel, rid::String)
     ridx = first(indexin([rid], m.mat[guesskeys(:reactions, m)]))[1] # get the index out of the cartesian index
@@ -178,7 +188,12 @@ function Base.convert(::Type{MATFBCModel}, m::A.AbstractFBCModel)
             ],
             "metFormulas" =>
                 [unparse_formula(A.metabolite_formula(m, mid)) for mid in A.metabolites(m)],
-            "metCharges" => [A.metabolite_charge(m, mid) for mid in A.metabolites(m)],
+            "metCharges" =>
+                [unparse_charge(A.metabolite_charge(m, mid)) for mid in A.metabolites(m)],
+            "metCompartments" => [
+                unparse_compartment(A.metabolite_compartment(m, mid)) for
+                mid in A.metabolites(m)
+            ],
         ),
     )
 end
