@@ -1,5 +1,18 @@
 
-guesskeys(id, model) = first(intersect(keys(model.mat), getfield(key_names, id)))
+guesskeys_maybe(id, model) =
+    let keys = [k for k in getfield(key_names, id) if k in keys(model.mat)]
+        isempty(keys) ? nothing : first(keys)
+    end
+
+guesskeys(id, model) =
+    let key = guesskeys_maybe(id, model)
+        isnothing(key) ? throw(KeyError, "no applicable model key found for $id") : key
+    end
+
+function parse_compartment(x::String)
+    isempty(x) && return nothing
+    return x
+end
 
 function parse_formula(x::Maybe{String})
     isnothing(x) && return nothing
@@ -15,20 +28,26 @@ end
 
 function parse_charge(x)::Maybe{Int}
     if isa(x, Int)
-        x
+        return x
     elseif isa(x, Float64)
-        Int(x)
+        return isnan(x) ? nothing : Int(x)
     elseif isa(x, String)
-        Int(parse(Float64, x))
+        return Int(parse(Float64, x))
     elseif isnothing(x)
-        nothing
+        return nothing
     else
         throw(DomainError(x, "cannot parse charge"))
     end
 end
+
+unparse_compartment(::Nothing) = ""
+unparse_compartment(x::String) = x
 
 function unparse_formula(x::Maybe{A.MetaboliteFormula})
     isnothing(x) && return nothing
     ks = sort(collect(keys(x)))
     join(k * string(x[k]) for k in ks)
 end
+
+unparse_charge(::Nothing) = NaN
+unparse_charge(x::Int) = float(x)

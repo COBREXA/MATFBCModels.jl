@@ -33,6 +33,10 @@ metabolite_formulas = ["metFormula", "metFormulas"]
 
 metabolite_charges = ["metCharge", "metCharges"]
 
+metabolite_compartments = ["metCompartment", "metCompartments", "metComp", "metComps"]
+
+metabolite_compartment_tables = ["comps", "compNames"]
+
 reaction_names = ["rxnNames"]
 
 metabolite_names = ["metNames"]

@@ -29,6 +29,12 @@ import SparseArrays
             "223db0b1ed69a7cc782f2a3093c1f48911a3c8bbd5bdf4bcdb13185cab5fdaa0",
             true,
         ),
+        (
+            "yeast-GEM",
+            "https://github.com/SysBioChalmers/yeast-GEM/raw/v8.6.2/model/yeast-GEM.mat",
+            "c2587e258501737e0141cd47e0f854a60a47faee2d4c6ad582a00e437676b181",
+            true,
+        ),
     ]
         path = joinpath(modeldir, "$name.mat")
         A.download_data_file(url, path, hash)
