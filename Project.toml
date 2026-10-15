@@ -1,7 +1,7 @@
 name = "MATFBCModels"
 uuid = "bd2e13bf-42c0-49e1-9a9c-885d36daf88b"
+version = "1.0.2"
 authors = ["The authors of MATFBCModels.jl"]
-version = "1.0.1"
 
 [deps]
 AbstractFBCModels = "5a4f3dfa-1789-40f8-8221-69268c29937c"
@@ -12,8 +12,8 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
 AbstractFBCModels = "1"
-DocStringExtensions = "0.8, 0.9"
-MAT = "0.10"
+DocStringExtensions = "0.8, 0.9, 0.10"
+MAT = "0.12"
 PikaParser = "0.6"
 SparseArrays = "1"
 Test = "1"
